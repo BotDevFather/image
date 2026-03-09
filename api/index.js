@@ -1,4 +1,5 @@
 import sharp from "sharp";
+import { createCanvas, registerFont } from "canvas";
 
 const SIZE = 223;
 
@@ -14,41 +15,60 @@ const TXT_TOP2 = U2_TOP + SIZE + 14;
 const TEMPLATE =
 "https://raw.githubusercontent.com/BotDevFather/image/refs/heads/main/IMG_20260309_105850_752.jpg";
 
-function escapeXML(str) {
-  return str.replace(/[&<>"]/g, c =>
-    ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c])
+/* OPTIONAL FONT */
+try {
+  registerFont("./PublicSans-Black.ttf", { family: "PublicSans" });
+} catch {}
+
+async function getUser(botToken, userId) {
+
+  const chat = await fetch(
+    `https://api.telegram.org/bot${botToken}/getChat?chat_id=${userId}`
   );
-}
 
-function renderText(name) {
+  const chatJson = await chat.json();
 
-  const safe = escapeXML(name);
+  const username =
+    chatJson.ok && chatJson.result.username
+      ? `@${chatJson.result.username}`
+      : "User";
 
-  const svg = `
-<svg width="400" height="80">
-<style>
+  const photos = await fetch(
+    `https://api.telegram.org/bot${botToken}/getUserProfilePhotos?user_id=${userId}&limit=1`
+  );
 
-@font-face {
-  font-family: PublicSans;
-  src: url("./PublicSans-Black.ttf");
-}
+  const photoJson = await photos.json();
 
-text{
-  font-family: PublicSans;
-  font-size: 34px;
-  fill: black;
-}
+  let photoBuffer;
 
-</style>
+  if (!photoJson.ok || !photoJson.result.photos.length) {
 
-<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle">
-${name}
-</text>
+    const fallback = await fetch(
+      "https://ui-avatars.com/api/?background=dbdbdb&size=223&name=U"
+    );
 
-</svg>
-`;
+    photoBuffer = Buffer.from(await fallback.arrayBuffer());
 
-  return Buffer.from(svg);
+  } else {
+
+    const fileId = photoJson.result.photos[0][0].file_id;
+
+    const fileReq = await fetch(
+      `https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`
+    );
+
+    const fileJson = await fileReq.json();
+
+    const img = await fetch(
+      `https://api.telegram.org/file/bot${botToken}/${fileJson.result.file_path}`
+    );
+
+    photoBuffer = Buffer.from(await img.arrayBuffer());
+
+  }
+
+  return { username, photo: photoBuffer };
+
 }
 
 async function processAvatar(buffer) {
@@ -64,72 +84,29 @@ async function processAvatar(buffer) {
     .composite([{ input: circleMask, blend: "dest-in" }])
     .png()
     .toBuffer();
+
 }
 
-async function getUser(botToken, userId) {
+function renderText(text) {
 
-  try {
+  const canvas = createCanvas(400, 80);
+  const ctx = canvas.getContext("2d");
 
-    const chat = await fetch(
-      `https://api.telegram.org/bot${botToken}/getChat?chat_id=${userId}`
-    );
+  ctx.fillStyle = "rgba(0,0,0,0)";
+  ctx.fillRect(0,0,400,80);
 
-    const chatJson = await chat.json();
+  ctx.fillStyle = "black";
+  ctx.font = "bold 34px PublicSans, Arial";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
 
-    const username =
-      chatJson.ok && chatJson.result.username
-        ? `@${chatJson.result.username}`
-        : "User";
+  ctx.fillText(text, 200, 40);
 
-    const photos = await fetch(
-      `https://api.telegram.org/bot${botToken}/getUserProfilePhotos?user_id=${userId}&limit=1`
-    );
+  return canvas.toBuffer();
 
-    const photoJson = await photos.json();
-
-    let photoBuffer;
-
-    if (!photoJson.ok || !photoJson.result.photos.length) {
-
-      const fallback = await fetch(
-        "https://ui-avatars.com/api/?background=dbdbdb&size=223&name=U"
-      );
-
-      photoBuffer = Buffer.from(await fallback.arrayBuffer());
-
-    } else {
-
-      const fileId = photoJson.result.photos[0][0].file_id;
-
-      const fileReq = await fetch(
-        `https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`
-      );
-
-      const fileJson = await fileReq.json();
-
-      const img = await fetch(
-        `https://api.telegram.org/file/bot${botToken}/${fileJson.result.file_path}`
-      );
-
-      photoBuffer = Buffer.from(await img.arrayBuffer());
-    }
-
-    return { username, photo: photoBuffer };
-
-  } catch {
-
-    return {
-      username: "User",
-      photo: Buffer.alloc(0)
-    };
-  }
 }
 
 export default async function handler(req, res) {
-
-  if (req.method !== "GET") {
-    return res.status(405).end();
-  }
 
   const { botToken, user1, user2 } = req.query;
 
@@ -201,4 +178,5 @@ export default async function handler(req, res) {
     });
 
   }
-}
+
+      }
