@@ -118,31 +118,26 @@ export default async function handler(req, res) {
     // TEXT RENDER WITH YOUR PUBLIC SANS FONT
     const renderText = (name) => {
 
-      const svg = `
-      <svg width="300" height="60">
-        <style>
-        @font-face {
-          font-family: 'PublicSans';
-          src: url('https://raw.githubusercontent.com/BotDevFather/image/main/PublicSans-Black.ttf');
-        }
+const svg = `
+<svg width="300" height="60">
+<style>
+text{
+  font-family: Arial, sans-serif;
+  font-size: 32px;
+  fill: black;
+  font-weight: 700;
+}
+</style>
 
-        text {
-          font-family: 'PublicSans';
-          font-size: 32px;
-          fill: black;
-          font-weight: 700;
-        }
-        </style>
+<text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle">
+${name}
+</text>
+</svg>
+`;
 
-        <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle">
-        ${name}
-        </text>
-      </svg>
-      `;
+return Buffer.from(svg);
 
-      return Buffer.from(svg);
-
-    };
+};
 
     const txt1 = renderText(u1.username);
     const txt2 = renderText(u2.username);
