@@ -96,7 +96,7 @@ export default async function handler(req, res) {
 
     const template = await Jimp.read(TEMPLATE);
 
-    const font = await Jimp.loadFont(Jimp.FONT_SANS_32_BLACK);
+    const font = await Jimp.loadFont("https://unpkg.com/jimp@0.22.10/fonts/open-sans/open-sans-32-black/open-sans-32-black.fnt");
 
     const [u1, u2] = await Promise.all([
       getUser(botToken, user1),
