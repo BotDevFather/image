@@ -8,7 +8,7 @@ const U1_TOP = 81;
 const U2_LEFT = 491;
 const U2_TOP = 86;
 
-const TXT_TOP1 = U1_TOP + SIZE + 65;
+const TXT_TOP1 = U1_TOP + SIZE + 62;
 const TXT_TOP2 = U2_TOP + SIZE + 55;
 
 const TEMPLATE =
