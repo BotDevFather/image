@@ -9,7 +9,7 @@ const U2_LEFT = 491;
 const U2_TOP = 86;
 
 const TXT_TOP1 = U1_TOP + SIZE + 65;
-const TXT_TOP2 = U2_TOP + SIZE + 65;
+const TXT_TOP2 = U2_TOP + SIZE + 55;
 
 const TEMPLATE =
 "https://raw.githubusercontent.com/BotDevFather/image/refs/heads/main/IMG_20260309_105850_752.jpg";
