@@ -4,7 +4,6 @@
   "description": "Telegram avatar love image generator",
   "type": "module",
   "dependencies": {
-    "canvas": "^2.11.2",
-    "sharp": "^0.33.3"
+    "jimp": "^0.22.10"
   }
 }
